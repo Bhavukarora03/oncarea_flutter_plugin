@@ -196,7 +196,7 @@ class ImagePickerConfigs {
   /// Custom sticker paths
   List<String> customStickers = [];
 
-  // double appBarHeight = 100;
+  double appBarHeight = 100;
 
   /// Camera direction setting.
   ///
