@@ -1,0 +1,17 @@
+# This is a generated file; do not edit or check into version control.
+camera=/Users/bhavukarora/.pub-cache/hosted/pub.dev/camera-0.10.5+5/
+camera_android=/Users/bhavukarora/.pub-cache/hosted/pub.dev/camera_android-0.10.8+12/
+camera_avfoundation=/Users/bhavukarora/.pub-cache/hosted/pub.dev/camera_avfoundation-0.9.13+6/
+camera_web=/Users/bhavukarora/.pub-cache/hosted/pub.dev/camera_web-0.3.2+3/
+flutter_native_image=/Users/bhavukarora/.pub-cache/hosted/pub.dev/flutter_native_image-0.0.6+1/
+flutter_plugin_android_lifecycle=/Users/bhavukarora/.pub-cache/hosted/pub.dev/flutter_plugin_android_lifecycle-2.0.6/
+image_cropper=/Users/bhavukarora/.pub-cache/hosted/pub.dev/image_cropper-5.0.0/
+image_cropper_for_web=/Users/bhavukarora/.pub-cache/hosted/pub.dev/image_cropper_for_web-3.0.0/
+image_editor=/Users/bhavukarora/.pub-cache/hosted/pub.dev/image_editor-1.3.0/
+image_editor_common=/Users/bhavukarora/.pub-cache/hosted/pub.dev/image_editor_common-1.0.1/
+path_provider=/Users/bhavukarora/.pub-cache/hosted/pub.dev/path_provider-2.1.1/
+path_provider_android=/Users/bhavukarora/.pub-cache/hosted/pub.dev/path_provider_android-2.2.0/
+path_provider_foundation=/Users/bhavukarora/.pub-cache/hosted/pub.dev/path_provider_foundation-2.3.1/
+path_provider_linux=/Users/bhavukarora/.pub-cache/hosted/pub.dev/path_provider_linux-2.2.1/
+path_provider_windows=/Users/bhavukarora/.pub-cache/hosted/pub.dev/path_provider_windows-2.2.1/
+photo_manager=/Users/bhavukarora/.pub-cache/hosted/pub.dev/photo_manager-2.7.2/

@@ -486,7 +486,7 @@ class _ImagePickerState extends State<ImagePicker>
           key: _scaffoldKey,
           backgroundColor: _configs.backgroundColor,
           appBar: AppBar(
-            toolbarHeight: _configs.appBarHeight,
+            //toolbarHeight: _configs.appBarHeight,
             title: _buildAppBarTitle(
               context,
               _appBarBackgroundColor,
