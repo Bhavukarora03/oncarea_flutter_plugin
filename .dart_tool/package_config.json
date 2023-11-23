@@ -261,7 +261,7 @@
     },
     {
       "name": "photo_manager",
-      "rootUri": "file:///Users/bhavukarora/.pub-cache/hosted/pub.dev/photo_manager-2.8.1",
+      "rootUri": "file:///Users/bhavukarora/.pub-cache/hosted/pub.dev/photo_manager-3.0.0-dev.2",
       "packageUri": "lib/",
       "languageVersion": "2.13"
     },
@@ -392,7 +392,7 @@
       "languageVersion": "2.16"
     }
   ],
-  "generated": "2023-11-23T15:13:18.721724Z",
+  "generated": "2023-11-23T15:27:37.477778Z",
   "generator": "pub",
   "generatorVersion": "3.2.0"
 }
