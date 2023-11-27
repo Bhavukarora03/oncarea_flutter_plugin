@@ -504,27 +504,27 @@ class _ImagePickerState extends State<ImagePicker>
     return GestureDetector(
         onTap: (_mode == PickerMode.Album)
             ? () {
-                Navigator.of(context, rootNavigator: true).push<void>(PageRouteBuilder(
-                    pageBuilder: (context, animation, __) {
-                      return Scaffold(
-                          appBar: AppBar(
-                              title: _buildAlbumSelectButton(context, isPop: true),
-                              backgroundColor: appBarBackgroundColor,
-                              foregroundColor: appBarTextColor,
-                              centerTitle: false),
-                          body: Material(
-                              color: Colors.black,
-                              child: SafeArea(
-                                child: _buildAlbumList(_albums, context, (val) {
-                                  Navigator.of(context).pop();
-                                  setState(() {
-                                    _currentAlbum = val;
-                                  });
-                                  _currentAlbumKey.currentState?.updateStateFromExternal(album: _currentAlbum);
-                                }),
-                              )));
-                    },
-                    fullscreenDialog: true));
+                // Navigator.of(context, rootNavigator: true).push<void>(PageRouteBuilder(
+                //     pageBuilder: (context, animation, __) {
+                //       return Scaffold(
+                //           appBar: AppBar(
+                //               title: _buildAlbumSelectButton(context, isPop: true),
+                //               backgroundColor: appBarBackgroundColor,
+                //               foregroundColor: appBarTextColor,
+                //               centerTitle: false),
+                //           body: Material(
+                //               color: Colors.black,
+                //               child: SafeArea(
+                //                 child: _buildAlbumList(_albums, context, (val) {
+                //                   Navigator.of(context).pop();
+                //                   setState(() {
+                //                     _currentAlbum = val;
+                //                   });
+                //                   _currentAlbumKey.currentState?.updateStateFromExternal(album: _currentAlbum);
+                //                 }),
+                //               )));
+                //     },
+                //     fullscreenDialog: true));
               }
             : null,
         child: _buildAlbumSelectButton(context, isCameraMode: _mode == PickerMode.Camera));
@@ -722,15 +722,15 @@ class _ImagePickerState extends State<ImagePicker>
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              constraints: BoxConstraints(maxWidth: size.width / 2.5),
-              child: Text(_currentAlbum?.name ?? "",
-                  overflow: TextOverflow.ellipsis, style: TextStyle(color: _configs.appBarTextColor, fontSize: 16)),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(left: 4),
-              child: Icon(isPop ? Icons.arrow_upward_outlined : Icons.arrow_downward_outlined, size: 16),
-            )
+            // Container(
+            //   constraints: BoxConstraints(maxWidth: size.width / 2.5),
+            //   child: Text(_currentAlbum?.name ?? "",
+            //       overflow: TextOverflow.ellipsis, style: TextStyle(color: _configs.appBarTextColor, fontSize: 16)),
+            // ),
+            // Padding(
+            //   padding: const EdgeInsets.only(left: 4),
+            //   child: Icon(isPop ? Icons.arrow_upward_outlined : Icons.arrow_downward_outlined, size: 16),
+            // )
           ],
         ));
 
@@ -946,7 +946,7 @@ class _ImagePickerState extends State<ImagePicker>
   Future<List<Uint8List?>> _buildAlbumThumbnails() async {
     LogUtils.log("[_buildAlbumThumbnails] start");
 
-    if (_albums.isNotEmpty && _albumThumbnails.isEmpty) {
+    if (_albums.isNotEmpty && _albumThumbnails.length != _albums.length) {
       final List<Uint8List?> ret = [];
       for (final a in _albums) {
         final f = await (await a.getAssetListRange(start: 0, end: 1))
@@ -965,26 +965,29 @@ class _ImagePickerState extends State<ImagePicker>
       List<AssetPathEntity> albums, BuildContext context, Function(AssetPathEntity newValue) callback) {
     LogUtils.log("[_buildAlbumList] start");
 
-    return FutureBuilder(
+    return FutureBuilder<List<Uint8List?>>(
       future: _buildAlbumThumbnails(),
-      builder: (BuildContext context, snapshot) {
+      builder: (BuildContext context, AsyncSnapshot<List<Uint8List?>> snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
+          final List<Uint8List?> thumbnails = snapshot.data ?? [];
           return ListView.builder(
-              itemCount: _albums.length,
-              padding: EdgeInsets.zero,
-              itemBuilder: (context, i) {
-                final album = _albums[i];
-                final thumbnail = _albumThumbnails[i]!;
-                return InkWell(
-                  child: ListTile(
-                      leading: SizedBox(width: 80, height: 80, child: Image.memory(thumbnail, fit: BoxFit.cover)),
-                      title: Text(album.name, style: const TextStyle(color: Colors.white)),
-                      subtitle: Text(album.assetCountAsync.toString(), style: const TextStyle(color: Colors.grey)),
-                      onTap: () async {
-                        callback.call(album);
-                      }),
-                );
-              });
+            itemCount: _albums.length,
+            padding: EdgeInsets.zero,
+            itemBuilder: (context, i) {
+              final album = _albums[i];
+              final thumbnail = thumbnails[i];
+              return InkWell(
+                child: ListTile(
+                  leading: SizedBox(width: 80, height: 80, child: Image.memory(thumbnail!, fit: BoxFit.cover)),
+                  title: Text(album.name, style: const TextStyle(color: Colors.white)),
+                  subtitle: Text(album.assetCountAsync.toString(), style: const TextStyle(color: Colors.grey)),
+                  onTap: () async {
+                    callback.call(album);
+                  },
+                ),
+              );
+            },
+          );
         } else {
           return const Center(
             child: CupertinoActivityIndicator(),
