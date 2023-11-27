@@ -3,7 +3,6 @@ import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:photo_manager/photo_manager.dart';
 
 import '../../models/image_object.dart';
@@ -94,8 +93,7 @@ class MediaAlbumState extends State<MediaAlbum> {
   }
 
   /// Update private state by function call from external function.
-  void updateStateFromExternal(
-      {AssetPathEntity? album, List<ImageObject>? selectedImages}) {
+  void updateStateFromExternal({AssetPathEntity? album, List<ImageObject>? selectedImages}) {
     if (selectedImages != null) {
       _selectedImages = [...selectedImages];
     }
@@ -112,8 +110,7 @@ class MediaAlbumState extends State<MediaAlbum> {
     if (_thumbnailCache.containsKey(asset.id)) {
       return _thumbnailCache[asset.id];
     } else {
-      final data = await asset.thumbnailDataWithSize(
-          ThumbnailSize(widget.albumThumbWidth, widget.albumThumbHeight),
+      final data = await asset.thumbnailDataWithSize(ThumbnailSize(widget.albumThumbWidth, widget.albumThumbHeight),
           quality: 90);
       _thumbnailCache[asset.id] = data;
       return data;
@@ -144,18 +141,13 @@ class MediaAlbumState extends State<MediaAlbum> {
         shrinkWrap: true,
         itemCount: _assets.length,
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: widget.gridCount,
-            mainAxisSpacing: 2,
-            crossAxisSpacing: 2),
+            crossAxisCount: widget.gridCount, mainAxisSpacing: 2, crossAxisSpacing: 2),
         itemBuilder: (BuildContext context, int index) {
           final asset = _assets[index];
-          final idx = _selectedImages.indexWhere(
-              (element) => ImageUtils.isTheSameAsset(asset, element));
+          final idx = _selectedImages.indexWhere((element) => ImageUtils.isTheSameAsset(asset, element));
           final isMaxCount = _selectedImages.length >= widget.maxCount!;
           final isSelectable = (idx >= 0) || !isMaxCount;
-          final data = (_thumbnailCache.containsKey(asset.id))
-              ? _thumbnailCache[asset.id]
-              : null;
+          final data = (_thumbnailCache.containsKey(asset.id)) ? _thumbnailCache[asset.id] : null;
 
           return GestureDetector(
             onTap: (isSelectable && _loadingAsset.isEmpty)
@@ -167,25 +159,26 @@ class MediaAlbumState extends State<MediaAlbum> {
                     });
 
                     var file = await asset.originFile;
-                    if (idx < 0) {
-                      file =
-                          await widget.preProcessing?.call(file!.path) ?? file;
-                    }
-                    final image = ImageObject(
-                        originalPath: file!.path,
+
+                    if (file != null) {
+                      file = await widget.preProcessing?.call(file.path) ?? file;
+                      final image = ImageObject(
+                        originalPath: file.path,
                         modifiedPath: file.path,
-                        assetId: asset.id);
+                        assetId: asset.id,
+                      );
 
-                    setState(() {
-                      if (idx >= 0) {
-                        _selectedImages.removeAt(idx);
-                      } else {
-                        _selectedImages.add(image);
-                      }
-                      _loadingAsset = "";
-                    });
+                      setState(() {
+                        if (idx >= 0) {
+                          _selectedImages.removeAt(idx);
+                        } else {
+                          _selectedImages.add(image);
+                        }
+                        _loadingAsset = "";
+                      });
 
-                    widget.onImageSelected?.call(image);
+                      widget.onImageSelected?.call(image);
+                    }
                   }
                 : null,
             child: Stack(fit: StackFit.passthrough, children: [
@@ -194,31 +187,21 @@ class MediaAlbumState extends State<MediaAlbum> {
                       ? FutureBuilder(
                           future: _getAssetThumbnail(asset),
                           builder: (BuildContext context, snapshot) {
-                            if (snapshot.connectionState ==
-                                ConnectionState.done) {
+                            if (snapshot.connectionState == ConnectionState.done) {
                               return Image.memory(
                                 snapshot.data! as Uint8List,
                                 fit: BoxFit.cover,
                               );
                             }
-                            return const Center(
-                                child: CupertinoActivityIndicator());
+                            return const Center(child: CupertinoActivityIndicator());
                           },
                         )
-                      : Image.memory(data,
-                          fit: BoxFit.cover, gaplessPlayback: true)),
-              if (!isSelectable)
-                Positioned.fill(
-                    child: Container(
-                        color: Colors.grey.shade200.withOpacity(0.8))),
-              if (_loadingAsset == asset.id)
-                const Positioned.fill(child: CupertinoActivityIndicator()),
+                      : Image.memory(data, fit: BoxFit.cover, gaplessPlayback: true)),
+              if (!isSelectable) Positioned.fill(child: Container(color: Colors.grey.shade200.withOpacity(0.8))),
+              if (_loadingAsset == asset.id) const Positioned.fill(child: CupertinoActivityIndicator()),
               if (idx >= 0)
                 const Positioned(
-                    top: 10,
-                    right: 10,
-                    child: Icon(Icons.check_circle,
-                        color: Colors.pinkAccent, size: 24))
+                    top: 10, right: 10, child: Icon(Icons.check_circle, color: Colors.pinkAccent, size: 24))
             ]),
           );
         });

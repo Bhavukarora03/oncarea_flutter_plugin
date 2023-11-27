@@ -193,6 +193,7 @@ class _ImagePickerState extends State<ImagePicker>
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (_mode == PickerMode.Camera) {
         await _initPhotoCapture();
+        print("init photo capture");
       } else {
         await _initPhotoGallery();
       }
@@ -218,17 +219,22 @@ class _ImagePickerState extends State<ImagePicker>
     final CameraController? cameraController = _controller;
 
     // App state changed before we got the chance to initialize.
-    if (cameraController == null || !cameraController.value.isInitialized) {
+    if (cameraController == null) {
       return;
     }
 
     // Process when app state changed
     if (state == AppLifecycleState.inactive) {
-      cameraController.dispose();
-      _isDisposed = true;
+      if (!_isDisposed) {
+        cameraController.dispose();
+        _isDisposed = true;
+      }
     } else if (state == AppLifecycleState.resumed) {
-      _isDisposed = false;
-      _onNewCameraSelected(cameraController.description);
+      if (_isDisposed) {
+        // Reinitialize camera controller only if it was disposed
+        _isDisposed = false;
+        _onNewCameraSelected(cameraController.description);
+      }
     }
   }
 
@@ -240,7 +246,10 @@ class _ImagePickerState extends State<ImagePicker>
       // List all cameras in current device.
       _cameras = await availableCameras();
 
-      // Select new camera for capturing.
+      if (_cameras.isEmpty) {
+        LogUtils.log("[_initPhotoCapture] no camera found");
+        return;
+      }
       if (_cameras.isNotEmpty) {
         final CameraDescription? newDescription =
             _getCamera(_cameras, _getCameraDirection(_configs.cameraLensDirection));
@@ -278,7 +287,14 @@ class _ImagePickerState extends State<ImagePicker>
   /// Initialize current selected camera
   void _initCameraController() {
     // Create future object for initializing new camera controller.
-    final cameraController = _controller!;
+    final cameraController = _controller;
+
+    if (cameraController == null) {
+      // Handle the case when _controller is null
+      LogUtils.log("[_onNewCameraSelected] _controller is null.");
+      return;
+    }
+
     _initializeControllerFuture = cameraController.initialize().then((value) async {
       LogUtils.log("[_onNewCameraSelected] cameraController initialized.");
 
@@ -310,7 +326,10 @@ class _ImagePickerState extends State<ImagePicker>
     // Dispose old then create new camera controller
     if (_controller != null) {
       await _controller!.dispose();
+    } else {
+      LogUtils.log("[_onNewCameraSelected] _controller is null before disposing.");
     }
+
     final CameraController cameraController = CameraController(
       cameraDescription,
       _configs.resolutionPreset,
@@ -318,6 +337,10 @@ class _ImagePickerState extends State<ImagePicker>
       imageFormatGroup: ImageFormatGroup.jpeg,
     );
     _controller = cameraController;
+
+    if (_controller == null) {
+      LogUtils.log("[_onNewCameraSelected] _controller is null after initialization.");
+    }
 
     // Init selected camera
     _initCameraController();
@@ -401,33 +424,21 @@ class _ImagePickerState extends State<ImagePicker>
   Future<bool> _onWillPop() async {
     if (!_configs.showNonSelectedAlert || _isImageSelectedDone || _selectedImages.isEmpty) return true;
 
-    return (await showDialog<bool>(
+    return (await showAdaptiveDialog<bool>(
             context: context,
-            builder: (context) => AlertDialog(
+            builder: (context) => CupertinoAlertDialog(
                   title: Text(_configs.textConfirm),
                   content: Text(_configs.textConfirmExitWithoutSelectingImages),
                   actions: <Widget>[
-                    TextButton(
-                      style: TextButton.styleFrom(
-                        minimumSize: const Size(88, 36),
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(2)),
-                        ),
-                      ),
+                    Button(
+                      variant: 'text',
                       onPressed: () => Navigator.of(context).pop(false),
-                      child: Text(_configs.textNo),
+                      label: _configs.textNo,
                     ),
-                    TextButton(
-                      style: TextButton.styleFrom(
-                        minimumSize: const Size(88, 36),
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(2)),
-                        ),
-                      ),
+                    Button(
+                      variant: 'text',
                       onPressed: () => Navigator.of(context).pop(true),
-                      child: Text(_configs.textYes),
+                      label: _configs.textYes,
                     ),
                   ],
                 ))) ??
@@ -451,28 +462,37 @@ class _ImagePickerState extends State<ImagePicker>
         (colorScheme.brightness == Brightness.dark ? colorScheme.onSurface : colorScheme.onPrimary);
     final Color _appBarDoneButtonColor = _configs.appBarDoneButtonColor ?? _appBarBackgroundColor;
 
-    return WillPopScope(
-      onWillPop: _onWillPop,
-      child: Scaffold(
-          key: _scaffoldKey,
-          backgroundColor: _configs.backgroundColor,
-          appBar: AppBar(
-            toolbarHeight: _configs.appBarHeight,
-            title: _buildAppBarTitle(
-              context,
-              _appBarBackgroundColor,
-              _appBarTextColor,
-            ),
-            backgroundColor: _appBarBackgroundColor,
-            foregroundColor: _appBarTextColor,
-            centerTitle: false,
-            actions: <Widget>[
-              const SizedBox(width: 20),
-              _buildDoneButton(context, _appBarDoneButtonColor),
-            ],
+    return Scaffold(
+        key: _scaffoldKey,
+        backgroundColor: _configs.backgroundColor,
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          leading: Button(
+            variant: 'text',
+            icon: const Icon(Icons.arrow_back_ios_rounded),
+            onPressed: () {
+              _onWillPop().then((value) {
+                if (value) {
+                  Navigator.of(context).pop();
+                }
+              });
+            },
           ),
-          body: SafeArea(child: _buildBodyView(context))),
-    );
+          toolbarHeight: _configs.appBarHeight,
+          title: _buildAppBarTitle(
+            context,
+            _appBarBackgroundColor,
+            _appBarTextColor,
+          ),
+          backgroundColor: _appBarBackgroundColor,
+          foregroundColor: _appBarTextColor,
+          centerTitle: false,
+          actions: <Widget>[
+            const SizedBox(width: 20),
+            _buildDoneButton(context, _appBarDoneButtonColor),
+          ],
+        ),
+        body: SafeArea(child: _buildBodyView(context)));
   }
 
   /// Build app bar title
@@ -625,7 +645,7 @@ class _ImagePickerState extends State<ImagePicker>
         shape: const CircleBorder(),
       ),
       onPressed: _controller != null ? _onExposureModeButtonPressed : null,
-      child: const Icon(Icons.settings_outlined, color: Colors.white, size: 32),
+      child: const Icon(Icons.settings_outlined, color: Colors.white, size: 24),
     );
   }
 
@@ -653,7 +673,7 @@ class _ImagePickerState extends State<ImagePicker>
         });
       },
       child: Icon(_isFullscreenImage ? Icons.fullscreen_exit_rounded : Icons.fullscreen_rounded,
-          color: Colors.white, size: 32),
+          color: Colors.white, size: 24),
     );
   }
 
@@ -1188,7 +1208,7 @@ class _ImagePickerState extends State<ImagePicker>
             child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
               if (_configs.showFlashMode)
                 GestureDetector(
-                  child: Icon(_flashModeIcon(_flashMode), size: 32, color: Colors.white),
+                  child: Icon(_flashModeIcon(_flashMode), size: 24, color: Colors.white),
                   onTap: () async {
                     // Ensure that the camera is initialized.
                     await _initializeControllerFuture;
@@ -1293,7 +1313,7 @@ class _ImagePickerState extends State<ImagePicker>
                       }
                     : null,
                 child: Icon(Icons.cameraswitch_outlined,
-                    size: 32,
+                    size: 24,
                     color: _configs.showLensDirection
                         ? (canSwitchCamera ? Colors.white : Colors.grey)
                         : Colors.transparent),
