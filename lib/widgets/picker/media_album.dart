@@ -153,7 +153,6 @@ class MediaAlbumState extends State<MediaAlbum> {
             onTap: (isSelectable && _loadingAsset.isEmpty)
                 ? () async {
                     LogUtils.log("[_MediaAlbumState.build] onTap start");
-
                     setState(() {
                       _loadingAsset = asset.id;
                     });
@@ -167,7 +166,6 @@ class MediaAlbumState extends State<MediaAlbum> {
                         modifiedPath: file.path,
                         assetId: asset.id,
                       );
-
                       setState(() {
                         if (idx >= 0) {
                           _selectedImages.removeAt(idx);
@@ -201,7 +199,7 @@ class MediaAlbumState extends State<MediaAlbum> {
               if (_loadingAsset == asset.id) const Positioned.fill(child: CupertinoActivityIndicator()),
               if (idx >= 0)
                 const Positioned(
-                    top: 10, right: 10, child: Icon(Icons.check_circle, color: Colors.pinkAccent, size: 24))
+                    top: 10, right: 10, child: Icon(Icons.check_circle, color: Color(0xFF6C63FF), size: 24))
             ]),
           );
         });

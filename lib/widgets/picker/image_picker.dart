@@ -298,7 +298,9 @@ class _ImagePickerState extends State<ImagePicker>
     _initializeControllerFuture = cameraController.initialize().then((value) async {
       LogUtils.log("[_onNewCameraSelected] cameraController initialized.");
 
-      _isCameraPermissionOK = true;
+      setState(() {
+        _isCameraPermissionOK = true;
+      });
 
       // After initialized, setting zoom & exposure values
       await Future.wait([
@@ -360,11 +362,16 @@ class _ImagePickerState extends State<ImagePicker>
 
     try {
       // Request permission for image selecting
-      final result = await PhotoManager.requestPermissionExtend();
+      final result = await PhotoManager.requestPermissionExtend(
+          requestOption: const PermissionRequestOption(
+              androidPermission: AndroidPermission(type: RequestType.image, mediaLocation: false),
+              iosAccessLevel: IosAccessLevel.readWrite));
       if (result.isAuth) {
         LogUtils.log('PhotoGallery permission allowed');
 
-        _isGalleryPermissionOK = true;
+        setState(() {
+          _isGalleryPermissionOK = true;
+        });
 
         // Get albums then set first album as current album
         _albums = await PhotoManager.getAssetPathList(type: RequestType.image);
@@ -504,27 +511,27 @@ class _ImagePickerState extends State<ImagePicker>
     return GestureDetector(
         onTap: (_mode == PickerMode.Album)
             ? () {
-                // Navigator.of(context, rootNavigator: true).push<void>(PageRouteBuilder(
-                //     pageBuilder: (context, animation, __) {
-                //       return Scaffold(
-                //           appBar: AppBar(
-                //               title: _buildAlbumSelectButton(context, isPop: true),
-                //               backgroundColor: appBarBackgroundColor,
-                //               foregroundColor: appBarTextColor,
-                //               centerTitle: false),
-                //           body: Material(
-                //               color: Colors.black,
-                //               child: SafeArea(
-                //                 child: _buildAlbumList(_albums, context, (val) {
-                //                   Navigator.of(context).pop();
-                //                   setState(() {
-                //                     _currentAlbum = val;
-                //                   });
-                //                   _currentAlbumKey.currentState?.updateStateFromExternal(album: _currentAlbum);
-                //                 }),
-                //               )));
-                //     },
-                //     fullscreenDialog: true));
+                Navigator.of(context, rootNavigator: true).push<void>(PageRouteBuilder(
+                    pageBuilder: (context, animation, __) {
+                      return Scaffold(
+                          appBar: AppBar(
+                              title: _buildAlbumSelectButton(context, isPop: true),
+                              backgroundColor: appBarBackgroundColor,
+                              foregroundColor: appBarTextColor,
+                              centerTitle: false),
+                          body: Material(
+                              color: Colors.black,
+                              child: SafeArea(
+                                child: _buildAlbumList(_albums, context, (val) {
+                                  Navigator.of(context).pop();
+                                  setState(() {
+                                    _currentAlbum = val;
+                                  });
+                                  _currentAlbumKey.currentState?.updateStateFromExternal(album: _currentAlbum);
+                                }),
+                              )));
+                    },
+                    fullscreenDialog: true));
               }
             : null,
         child: _buildAlbumSelectButton(context, isCameraMode: _mode == PickerMode.Camera));
@@ -716,23 +723,25 @@ class _ImagePickerState extends State<ImagePicker>
     }
 
     final size = MediaQuery.of(context).size;
-    final container = Container(
-        decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), color: Colors.black.withOpacity(0.1)),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Container(
-            //   constraints: BoxConstraints(maxWidth: size.width / 2.5),
-            //   child: Text(_currentAlbum?.name ?? "",
-            //       overflow: TextOverflow.ellipsis, style: TextStyle(color: _configs.appBarTextColor, fontSize: 16)),
-            // ),
-            // Padding(
-            //   padding: const EdgeInsets.only(left: 4),
-            //   child: Icon(isPop ? Icons.arrow_upward_outlined : Icons.arrow_downward_outlined, size: 16),
-            // )
-          ],
-        ));
+    final container = Platform.isAndroid
+        ? Container(
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), color: Colors.black.withOpacity(0.1)),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  constraints: BoxConstraints(maxWidth: size.width / 2.5),
+                  child: Text(_currentAlbum?.name ?? "",
+                      overflow: TextOverflow.ellipsis, style: TextStyle(color: _configs.appBarTextColor, fontSize: 16)),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(left: 4),
+                  child: Icon(isPop ? Icons.arrow_upward_outlined : Icons.arrow_downward_outlined, size: 16),
+                )
+              ],
+            ))
+        : SizedBox.shrink();
 
     return isPop
         ? GestureDetector(
@@ -980,7 +989,7 @@ class _ImagePickerState extends State<ImagePicker>
                 child: ListTile(
                   leading: SizedBox(width: 80, height: 80, child: Image.memory(thumbnail!, fit: BoxFit.cover)),
                   title: Text(album.name, style: const TextStyle(color: Colors.white)),
-                  subtitle: Text(album.assetCountAsync.toString(), style: const TextStyle(color: Colors.grey)),
+                  subtitle: Text('', style: const TextStyle(color: Colors.grey)),
                   onTap: () async {
                     callback.call(album);
                   },
