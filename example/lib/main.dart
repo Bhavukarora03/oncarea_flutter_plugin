@@ -27,18 +27,7 @@ class MyApp extends StatelessWidget {
     // AppBar text color
     configs.appBarTextColor = Colors.white;
     configs.appBarBackgroundColor = Colors.black;
-    configs.guideLineImages = [
-      Image.network('https://i.imgur.com/dP6eLFT.png'),
-      Image.network('https://i.imgur.com/9LbvYln.png'),
-      Image.network('https://i.imgur.com/9LbvYln.png'),
-      Image.network('https://i.imgur.com/9LbvYln.png'),
-      Image.network('https://i.imgur.com/9LbvYln.png'),
-      Image.network('https://i.imgur.com/9LbvYln.png'),
-      Image.network('https://i.imgur.com/9LbvYln.png'),
-      Image.network('https://i.imgur.com/9LbvYln.png'),
-      Image.network('https://i.imgur.com/9LbvYln.png'),
-      Image.network('https://i.imgur.com/9LbvYln.png'),
-    ];
+    configs.guideLineImages = [];
     // Disable select images from album
     // configs.albumPickerModeEnabled = false;
     // Only use front camera for capturing
@@ -61,12 +50,8 @@ class MyApp extends StatelessWidget {
                 ImagePickerConfigs? configs}) async =>
             Navigator.of(context).push(MaterialPageRoute(
                 fullscreenDialog: true,
-                builder: (context) => ImageEdit(
-                    file: file,
-                    title: 'Edit',
-                    maxWidth: maxWidth,
-                    maxHeight: maxHeight,
-                    configs: configs))));
+                builder: (context) =>
+                    ImageEdit(file: file, title: 'Edit', maxWidth: maxWidth, maxHeight: maxHeight, configs: configs))));
 
     // Example about label detection & OCR extraction feature.
     // You can use Google ML Kit or TensorflowLite for this purpose
@@ -127,8 +112,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   final image = _imgObjs[index];
                   return Padding(
                     padding: const EdgeInsets.all(2),
-                    child: Image.file(File(image.modifiedPath),
-                        height: 80, fit: BoxFit.cover),
+                    child: Image.file(File(image.modifiedPath), height: 80, fit: BoxFit.cover),
                   );
                 })
           ],
@@ -137,8 +121,8 @@ class _MyHomePageState extends State<MyHomePage> {
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           // Get max 5 images
-          final List<ImageObject>? objects = await Navigator.of(context)
-              .push(PageRouteBuilder(pageBuilder: (context, animation, __) {
+          final List<ImageObject>? objects =
+              await Navigator.of(context).push(PageRouteBuilder(pageBuilder: (context, animation, __) {
             return const ImagePicker(maxCount: 10);
           }));
 
